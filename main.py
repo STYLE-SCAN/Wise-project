@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import pandas as pd
 import os
@@ -26,7 +28,8 @@ styles_df
 label_encoder = LabelEncoder()
 styles_df['encoded_labels'] = label_encoder.fit_transform(styles_df['articleType'])
 
-train_df, test_df = train_test_split(styles_df, test_size=0.2, random_state=42)
+train_df, val_df = train_test_split(styles_df, test_size=0.2, random_state=42)
+train_df, test_df = train_test_split(train_df, test_size=0.2, random_state=42)
 
 # Data augmentation and normalization
 train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
@@ -40,15 +43,25 @@ test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_dataframe(
     dataframe=train_df,
-    directory=images,  # path to the images folder
+    directory=images,  
     x_col="filename",
     y_col="encoded_labels",
-    target_size=(150, 150),  # adjust based on your image size
+    target_size=(150, 150), 
     batch_size=32,
     class_mode="raw"  # 'raw' for regression, 'categorical' for one-hot encoding
 )
 
 validation_generator = test_datagen.flow_from_dataframe(
+    dataframe=val_df,
+    directory=images,
+    x_col="filename",
+    y_col="encoded_labels",
+    target_size=(150, 150),
+    batch_size=32,
+    class_mode="raw"
+)
+
+test_generator = test_datagen.flow_from_dataframe(
     dataframe=test_df,
     directory=images,
     x_col="filename",
